@@ -7,6 +7,8 @@
 #include "Connection_information.h"
 #include "Urg_driver.h"
 
+//#define USE_LIDAR
+
 #define LIDAR_MODEL "UTM-30LX-EW"
 
 WINDOW *win;
@@ -30,7 +32,6 @@ void ncurses_init() {
   init_pair(5, COLOR_RED,     COLOR_BLACK);
   init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
   init_pair(7, COLOR_CYAN,    COLOR_BLACK);
-
   /* -----< curses : END >----- */
 }
 
@@ -39,15 +40,15 @@ void ncurses_close() {
 }
 
 int main(int argc, char *argv[]) {
-  double MAX_RANGE = 35;
-  double MIN_RANGE =  5;
+  double MAX_RANGE = 35;  // [m] 表示する範囲の最大値
+  double MIN_RANGE =  5;  // [m] 表示する範囲の最小値
   double start_angle = -100.0;
-  double end_angle = +100.0;
-  double step_angle = 0.25;
+  double end_angle   = +100.0;
+  double step_angle  = 0.25;
 
   qrk::Connection_information information(argc, argv);
   qrk::Urg_driver urg;
-#if 0
+#ifdef USE_LIDAR
   if (!urg.open(information.device_or_ip_name(),
                 information.baudrate_or_port_number(),
                 information.connection_type())) {
@@ -58,16 +59,16 @@ int main(int argc, char *argv[]) {
   urg.set_scanning_parameter(urg.deg2step(start_angle), urg.deg2step(end_angle), 0);
 
   ncurses_init();
-  int width, height;
+  int width, height;  // 主ウィンドウの幅・高さ
   getmaxyx(stdscr, height, width);
-  double max_range = 10.0;  // [m]
-  double csize_h = max_range / (height/2);
-  double csize_w = max_range / (width/2);
+  double max_range = 10.0;  // [m] 現在表示する範囲の最大値
+  double csize_h = max_range / (height/2);  // 縦方向の解像度
+  double csize_w = max_range / (width/2);   // 横方向の解像度
 
-  int info_win_width = 30;
-  int info_win_height = 10;
+  int info_win_width = 31;    // 情報ウィンドウの幅
+  int info_win_height = 10;   // 情報ウィンドウの高さ
   info_win = newwin(info_win_height, info_win_width, height/2 + 5, width/2 - info_win_width/2);
-  bool DISPLAY_INFO = false;
+  bool DISPLAY_INFO = false;  // 情報ウィンドウの表示フラグ
   int time_count = 0;
   for (;;) {
 #if 0
@@ -83,6 +84,7 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
+    // 背景の塗りつぶし
     for (int i = 1; i < height-1; i++) {
       for (int j = 1; j < width-1; j++) {
         double dist = std::hypot((j - width/2)*csize_w, (i - height/2)*csize_h);
@@ -103,6 +105,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
+    // 座標軸の描画
     attrset(COLOR_PAIR(1));
     for (int i = 1; i < height-1; i++) {
       mvprintw(i, width/2, "│");
@@ -116,11 +119,14 @@ int main(int argc, char *argv[]) {
     mvprintw(height/2, width-3,     "%1.0f",  max_range);
     mvprintw(height/2,       1,     "%1.0f", -max_range);
 
+    // タイムスタンプ
     mvprintw(1, 1, "%d", time_count);
-    refresh();
-
     time_count++;
 
+    // 画面表示
+    refresh();
+
+    // キー操作受け付け
     int key = getch();
     if ( key == 'q') {
       if (DISPLAY_INFO) {
@@ -152,7 +158,10 @@ int main(int argc, char *argv[]) {
     } else {
       ;
     }
+
+    // インターバル（キー入力が不自然にならない程度に調整する[usec]）
     usleep(25000);
   }
-  return 0;
+
+  return EXIT_SUCCESS;
 }
