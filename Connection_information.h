@@ -2,9 +2,9 @@
 #define QRK_CONNECTION_INFORMATION_H
 
 /*!
-  \file
-  \brief �ڑ����̊Ǘ�
-  \author Satofumi KAMIMURA
+  ¥file
+  ¥brief 接続情報の管理
+  ¥author Satofumi KAMIMURA
 
   $Id$
 */
