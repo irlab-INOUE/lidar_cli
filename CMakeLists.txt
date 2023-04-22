@@ -10,5 +10,5 @@ include_directories(${PROJECT_SOURCE_DIR}
 link_directories(${PROJECT_SOURCE_DIR}
   /usr/local/lib)
 
-add_executable (main main.cpp Connection_information.cpp)
+add_executable (main main.cpp Map.cpp Connection_information.cpp)
 target_link_libraries(main ncursesw urg_cpp)

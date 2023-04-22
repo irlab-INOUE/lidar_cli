@@ -1,11 +1,10 @@
 /*!
-  ¥file
-  ¥brief 接続情報の管理
-  ¥author Satofumi KAMIMURA
+  \file
+  \brief �ڑ����̊Ǘ�
+  \author Satofumi KAMIMURA
 
   $Id$
 */
-
 
 #include "Connection_information.h"
 #include "detect_os.h"
@@ -59,9 +58,24 @@ Connection_information::Connection_information(int argc,
                                                const char*const argv[])
     : pimpl(new pImpl)
 {
-  const char* device = NULL;
-  pimpl->set_ethernet_connection(device);
-  return;
+    for (int i = 1; i < argc; ++i) {
+        const char* device = NULL;
+        if (!strcmp(argv[i], "-e")) {
+            if (argc > i + 1) {
+                device = argv[i + 1];
+            }
+            pimpl->set_ethernet_connection(device);
+            return;
+        }
+        if (!strcmp(argv[i], "-s")) {
+            if (argc > i + 1) {
+                device = argv[i + 1];
+            }
+            pimpl->set_serial_connection(device);
+            return;
+        }
+    }
+    pimpl->set_serial_connection();
 }
 
 
