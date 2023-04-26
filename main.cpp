@@ -36,6 +36,16 @@ void ncurses_init() {
   /* -----< curses : END >----- */
 }
 
+void show_info(bool USE_LIDAR, double start_angle, double end_angle, double step_angle) {
+  box(info_win, ACS_VLINE, ACS_HLINE);
+  mvwprintw(info_win, 1, 1, "LIDAR: %s/%d", LIDAR_MODEL,
+            static_cast<int>(USE_LIDAR));
+  mvwprintw(info_win, 2, 1, "START: %+0.f[deg]", start_angle);
+  mvwprintw(info_win, 3, 1, "  END: %+0.f[deg]", end_angle);
+  mvwprintw(info_win, 4, 1, " STEP: %0.2f[deg]", step_angle);
+  wrefresh(info_win);
+}
+
 void ncurses_close() { endwin(); }
 
 int main(int argc, char *argv[]) {
@@ -155,49 +165,52 @@ int main(int argc, char *argv[]) {
       refresh();
 
       int key = getch();
-      if (key == 'q') {
+      switch (key) {
+      case 'q':
         if (DISPLAY_INFO) {
           DISPLAY_INFO = false;
         } else if (DISPLAY_WORLD) {
           DISPLAY_WORLD = false;
         } else {
-          ncurses_close();
           break;
         }
-      } else if (key == 'u') {
+        break;
+      case 'u':
         if (max_range < MAX_RANGE) {
           max_range += 1.0;
           csize_h = max_range / (height / 2);
           csize_w = max_range / (width / 2);
         }
-      } else if (key == 'd') {
+        break;
+      case 'd':
         if (max_range > MIN_RANGE) {
           max_range -= 1.0;
           csize_h = max_range / (height / 2);
           csize_w = max_range / (width / 2);
         }
-      } else if (key == 'I') {
+        break;
+      case 'I':
         if (DISPLAY_INFO)
           DISPLAY_INFO = false;
         else
           DISPLAY_INFO = true;
-      } else if (key == 'w') {
+        break;
+      case 'w':
         if (DISPLAY_WORLD)
           DISPLAY_WORLD = false;
         else
           DISPLAY_WORLD = true;
+        break;
+      default:
+        break;
       }
 
       if (DISPLAY_INFO) {
-        box(info_win, ACS_VLINE, ACS_HLINE);
-        mvwprintw(info_win, 1, 1, "LIDAR: %s/%d", LIDAR_MODEL,
-                  static_cast<int>(USE_LIDAR));
-        mvwprintw(info_win, 2, 1, "START: %+0.f[deg]", start_angle);
-        mvwprintw(info_win, 3, 1, "  END: %+0.f[deg]", end_angle);
-        mvwprintw(info_win, 4, 1, " STEP: %0.2f[deg]", step_angle);
-        wrefresh(info_win);
+        show_info(USE_LIDAR, start_angle, end_angle, step_angle);
       }
-    } else if (DISPLAY_WORLD) {
+    }
+
+    if (DISPLAY_WORLD) {
       box(world_win, ACS_VLINE, ACS_HLINE);
       mvwprintw(world_win, 1, 1, "WIDTH: %0.1f[m]", map.WIDTH * map.csize);
       mvwprintw(world_win, 2, 1, "HEIGHT: %0.1f[m]", map.HEIGHT * map.csize);
@@ -248,5 +261,6 @@ int main(int argc, char *argv[]) {
     usleep(2500);
   }
 
+  ncurses_close();
   return EXIT_SUCCESS;
 }
